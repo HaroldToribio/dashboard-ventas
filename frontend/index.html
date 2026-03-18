@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Ventas</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header>
+  <button id="menu-toggle">☰</button>
+  <h1>Dashboard de Ventas</h1>
+</header>
+
+<nav id="sidebar">
+  <ul>
+    <li onclick="mostrarSeccion('dashboard')">Dashboard</li>
+    <li onclick="mostrarSeccion('productos')">Productos</li>
+    <li onclick="mostrarSeccion('reportes')">Reportes</li>
+  </ul>
+</nav>
+
+<main id="main-content">
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="seccion activa">
+    <h2>Resumen</h2>
+    <canvas id="graficaVentas"></canvas>
+    <div class="stats">
+    <div class="card">Ventas Totales: <span id="totalVentas"></span></div>
+    <div class="card">Promedio: <span id="promedioVentas"></span></div>
+      </div>
+  </section>
+
+  <!-- PRODUCTOS -->
+  <section id="productos" class="seccion">
+    <h2>Productos</h2>
+
+    <div class="dashboard">
+
+      <!-- IZQUIERDA -->
+      <div class="productos-left">
+        <form id="form-producto">
+          <input type="text" id="nombre" placeholder="Nombre" required>
+          <input type="number" id="precio" placeholder="Precio" required>
+          <button type="submit">Agregar</button>
+        </form>
+
+        <ul id="lista-productos"></ul>
+      </div>
+
+      <!-- DERECHA -->
+      <div class="dashboard-right">
+        <h3>Resumen</h3>
+
+        <div class="card">
+          <p>Total Ventas</p>
+          <h2 id="totalVentasProductos">$0</h2>
+        </div>
+
+        <div class="card">
+          <p>Total Productos</p>
+          <h2 id="totalProductos">0</h2>
+        </div>
+
+        <canvas id="graficoMini"></canvas>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- REPORTES -->
+  <section id="reportes" class="seccion">
+    <h2>Reportes</h2>
+    <canvas id="graficaProductos"></canvas>
+  </section>
+
+</main>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
