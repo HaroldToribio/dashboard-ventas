@@ -8,25 +8,20 @@ class VentasRepository:
         conn = DatabaseConnection().get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
-                       SELECT id_producto AS id, nombre, precio
-                       FROM productos
-                       """)
-        data = cursor.fetchall()
+        cursor.callproc('ListarProductos')
 
-        cursor.close()
+        data = []
+        for result in cursor.stored_results():
+            data = result.fetchall()
+
         conn.close()
-
         return data
 
     def crear_producto(self, nombre, precio):
         conn = DatabaseConnection().get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            "INSERT INTO productos (nombre, categoria, precio) VALUES (%s, %s, %s)",
-            (nombre, "General", precio)
-        )
+        cursor.callproc('CrearProducto', (nombre, precio))
 
         conn.commit()
         conn.close()
@@ -35,35 +30,38 @@ class VentasRepository:
         conn = DatabaseConnection().get_connection()
         cursor = conn.cursor()
 
-        query = "DELETE FROM productos WHERE id_producto = %s"
-        cursor.execute(query, (id,))
-        conn.commit()
+        cursor.callproc('EliminarProducto', (id,))
 
-        cursor.close()
+        conn.commit()
         conn.close()
 
-    def get_dashboard(self, producto, dias):
-        return {
-            "prediccion": [10, 12, 15, 20, 18, 25, 30],
-            "costo_total": 500,
-            "inventario_final": 120,
-            "demanda_promedio": 18
-        }
+    def get_dashboard(self, producto=None, dias=None):
+        conn = DatabaseConnection().get_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.callproc('ObtenerDashboardResumen')
+
+        data = []
+        for result in cursor.stored_results():
+            data = result.fetchall()
+
+        conn.close()
+
+        if len(data) > 0:
+            return data[0]
+        else:
+            return {}
     
     def obtener_resumen_ventas(self):
         conn = DatabaseConnection().get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
-            SELECT 
-                p.nombre,
-                SUM(v.cantidad * p.precio) AS total
-            FROM ventas v
-            JOIN productos p ON v.id_producto = p.id_producto
-            GROUP BY p.nombre
-        """)
+        cursor.callproc('ObtenerResumenVentas')
 
-        data = cursor.fetchall()
+        data = []
+        for result in cursor.stored_results():
+            data = result.fetchall()
+
         conn.close()
         return data
     
@@ -71,17 +69,12 @@ class VentasRepository:
         conn = DatabaseConnection().get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
-            SELECT 
-                v.fecha,
-                (v.cantidad * p.precio) AS total
-            FROM ventas v
-            JOIN productos p ON v.id_producto = p.id_producto
-            WHERE v.id_producto = %s
-            ORDER BY v.fecha
-        """, (id_producto,))
+        cursor.callproc('ObtenerVentasPorProducto', (id_producto,))
 
-        data = cursor.fetchall()
+        data = []
+        for result in cursor.stored_results():
+            data = result.fetchall()
+
         conn.close()
         return data
     
@@ -89,15 +82,11 @@ class VentasRepository:
         conn = DatabaseConnection().get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute("""
-            SELECT 
-                v.fecha,
-                (v.cantidad * p.precio) AS total
-            FROM ventas v
-            JOIN productos p ON v.id_producto = p.id_producto
-            ORDER BY v.fecha
-        """)
+        cursor.callproc('ObtenerVentasTotales')
 
-        data = cursor.fetchall()
+        data = []
+        for result in cursor.stored_results():
+            data = result.fetchall()
+
         conn.close()
         return data

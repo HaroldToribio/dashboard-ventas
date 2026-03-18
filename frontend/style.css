@@ -110,3 +110,13 @@ button {
 #lista-productos {
   margin-top: 10px;
 }
+
+#graficaVentas {
+  height: 400px;
+}
+
+.grafica-container {
+  width: 100%;
+  margin-top: 600px;
+  margin: 20px auto;
+}

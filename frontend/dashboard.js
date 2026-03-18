@@ -22,57 +22,39 @@ let graficaPrincipal = null;
 
 async function cargarVentas() {
   try {
-    const res = await fetch(`${API}/ventas`);
+    const res = await fetch(`${API}/ventas-por-producto`);
     const data = await res.json();
 
-    const agrupado = {};
-
-    data.forEach(v => {
-    const labels = data.map(v => new Date(v.fecha).toLocaleDateString());
-    const valores = data.map(v => parseFloat(v.total));
-
-    if (!agrupado[v.fecha]) {
-      agrupado[fecha] = 0;
-    }
-
-    agrupado[fecha] += total;
-    });
-
-    const labels = Object.keys(agrupado);
-    const valores = Object.values(agrupado);
+    const labels = data.map(p => p.nombre);
+    const valores = data.map(p => parseFloat(p.total));
 
     if (valores.length > 0) {
-      const total = valores.reduce((a, b) => a + Number(b), 0);
+      const total = valores.reduce((a, b) => a + b, 0);
       const promedio = total / valores.length;
 
-      document.getElementById("totalVentas").innerText = total.toFixed(2);
-      document.getElementById("promedioVentas").innerText = promedio.toFixed(2);
+      document.getElementById("totalVentas").innerText = `$` + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById("promedioVentas").innerText = `$` + promedio.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
     }
 
-    // 🔥 DESTRUIR GRAFICA ANTERIOR (IMPORTANTE)
     if (graficaPrincipal) {
       graficaPrincipal.destroy();
     }
 
     graficaPrincipal = new Chart(document.getElementById("graficaVentas"), {
-      type: "line",
+      type: "pie",
       data: {
-        labels,
+        labels: labels,
         datasets: [{
-          label: "Ventas",
-          data: valores,
-          borderWidth: 2,
-          tension: 0.4,
-          fill: true
+          label: "Ventas por Producto",
+          data: valores
         }]
       },
       options: {
         plugins: {
-          legend: { labels: { color: "#fff" } }
-        },
-        scales: {
-          x: { ticks: { color: "#fff" } },
-          y: { ticks: { color: "#fff" } }
+          legend: {
+            labels: { color: "#fff" }
+          }
         }
       }
     });
@@ -208,6 +190,25 @@ async function cargarResumen() {
   document.getElementById("totalVentas").innerText = "$" + total.toFixed(2);
 }
 
+async function cargarDashboardResumen() {
+  try {
+    const res = await fetch(`${API}/dashboard?producto=1&dias=7`);
+    const data = await res.json();
+
+    console.log("Dashboard:", data);
+
+    // Puedes mostrarlo donde ya tienes el resumen
+    document.getElementById("totalVentas").innerText =
+      "$" + parseFloat(data.total_ventas || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    document.getElementById("promedioVentas").innerText =
+      "$" + parseFloat(data.promedio_ventas || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  } catch (error) {
+    console.error("Error dashboard:", error);
+  }
+}
+
 // =========================
 // 🚀 INIT
 // =========================
@@ -217,3 +218,4 @@ cargarProductos();
 cargarProductosGrafica();
 cargarResumenProductos();
 cargarResumen();
+cargarDashboardResumen();

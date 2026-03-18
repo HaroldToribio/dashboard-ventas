@@ -107,3 +107,26 @@ SELECT
     (v.cantidad * p.precio) AS total
 FROM ventas v
 JOIN productos p ON v.id_producto = p.id_producto;
+
+SHOW CREATE TABLE productos;
+
+ALTER TABLE productos
+MODIFY categoria varchar(50) NULL;
+
+SELECT * FROM ventas;
+SELECT * FROM productos;
+
+SELECT 
+    v.fecha,
+    (v.cantidad * p.precio) AS total
+FROM ventas v
+JOIN productos p ON v.id_producto = p.id_producto;
+
+ALTER TABLE ventas DROP FOREIGN KEY ventas_ibfk_1;
+
+ALTER TABLE productos 
+MODIFY id_producto INT NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE ventas 
+ADD CONSTRAINT ventas_ibfk_1 
+FOREIGN KEY (id_producto) REFERENCES productos(id_producto);

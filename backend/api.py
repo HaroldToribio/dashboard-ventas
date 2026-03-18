@@ -121,8 +121,6 @@ def home():
         "endpoints": ["/productos", "/dashboard"]
     }
 
-print("METODOS DEL REPO:", dir(repo))
-
 
 if __name__ == '__main__':
     app.run(debug=True)
