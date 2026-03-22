@@ -16,9 +16,10 @@
 
 <nav id="sidebar">
   <ul>
-    <li onclick="mostrarSeccion('dashboard')">Dashboard</li>
-    <li onclick="mostrarSeccion('productos')">Productos</li>
-    <li onclick="mostrarSeccion('reportes')">Reportes</li>
+    <li onclick="mostrarSeccion('dashboard')">📊 Dashboard</li>
+    <li onclick="mostrarSeccion('productos')">📦 Productos</li>
+    <li onclick="mostrarSeccion('prediccion')">🤖 Predicción ML</li>
+    <li onclick="mostrarSeccion('reportes')">📈 Reportes</li>
   </ul>
 </nav>
 
@@ -27,55 +28,94 @@
   <!-- DASHBOARD -->
   <section id="dashboard" class="seccion activa">
     <h2>Resumen General</h2>
+    <div class="stats">
+      <div class="card">Ventas Totales: <span id="totalVentas">—</span></div>
+      <div class="card">Promedio por Venta: <span id="promedioVentas">—</span></div>
+      <div class="card">Total Productos: <span id="totalProductosDash">—</span></div>
+      <div class="card">Producto Top: <span id="productoTop">—</span></div>
+    </div>
     <div class="grafica-container">
       <canvas id="graficaVentas"></canvas>
     </div>
-    <div class="stats">
-    <div class="card">Ventas Totales: <span id="totalVentas"></span></div>
-    <div class="card">Promedio: <span id="promedioVentas"></span></div>
-      </div>
   </section>
 
   <!-- PRODUCTOS -->
   <section id="productos" class="seccion">
     <h2>Productos</h2>
-
     <div class="dashboard">
 
-      <!-- IZQUIERDA -->
       <div class="productos-left">
         <form id="form-producto">
-          <input type="text" id="nombre" placeholder="Nombre" required>
-          <input type="number" id="precio" placeholder="Precio" required>
-          <button type="submit">Agregar</button>
+          <input type="text"   id="nombre"          placeholder="Nombre del producto" required>
+          <input type="number" id="precio"          placeholder="Precio ($)" step="0.01" min="0" required>
+          <input type="number" id="promedio_ventas" placeholder="Promedio de ventas diarias estimado (ej: 10)" min="1" required>
+          <small class="form-hint">📊 Se generarán 90 días de historial simulado para que el modelo ML pueda predecir la demanda.</small>
+          <button type="submit">➕ Agregar Producto</button>
         </form>
-
         <ul id="lista-productos"></ul>
       </div>
 
-      <!-- DERECHA -->
       <div class="dashboard-right">
         <h3>Resumen</h3>
-
         <div class="card">
           <p>Total Ventas</p>
           <h2 id="totalVentasProductos">$0</h2>
         </div>
-
         <div class="card">
           <p>Total Productos</p>
           <h2 id="totalProductos">0</h2>
         </div>
-
         <canvas id="graficoMini"></canvas>
       </div>
 
     </div>
   </section>
 
+  <!-- PREDICCION ML -->
+  <section id="prediccion" class="seccion">
+    <h2>🤖 Predicción de Demanda con Machine Learning</h2>
+
+    <div class="prediccion-controls">
+      <label>Producto:
+        <select id="selectProducto"></select>
+      </label>
+      <label>Días a predecir:
+        <select id="selectDias">
+          <option value="7">7 días</option>
+          <option value="14">14 días</option>
+          <option value="30">30 días</option>
+        </select>
+      </label>
+      <button onclick="cargarPrediccion()">🔍 Predecir</button>
+    </div>
+
+    <div id="prediccion-resultado" style="display:none">
+
+      <div class="stats">
+        <div class="card">Modelo Seleccionado: <span id="modeloUsado">—</span></div>
+        <div class="card">Promedio Histórico: <span id="histPromedio">—</span></div>
+        <div class="card">Total Vendido: <span id="histTotal">—</span></div>
+        <div class="card">Días Registrados: <span id="histDias">—</span></div>
+      </div>
+
+      <h3>Comparación de Modelos de Regresión</h3>
+      <div id="tablaModelos"></div>
+
+      <h3>Predicciones para los próximos días</h3>
+      <div class="grafica-container">
+        <canvas id="graficaPrediccion"></canvas>
+      </div>
+
+    </div>
+
+    <div id="prediccion-loading" style="display:none; text-align:center; padding:2rem;">
+      ⏳ Entrenando modelos...
+    </div>
+  </section>
+
   <!-- REPORTES -->
   <section id="reportes" class="seccion">
-    <h2>Reportes</h2>
+    <h2>Reportes por Producto</h2>
     <canvas id="graficaProductos"></canvas>
   </section>
 

@@ -8,9 +8,10 @@ def cargar_datos(producto_id):
     data = []
 
     for v in ventas:
+        # v es un dict (cursor dictionary=True), no un objeto
         data.append({
-            "fecha": v.fecha,
-            "demanda": v.cantidad
+            "fecha": v["fecha"], # type: ignore
+            "demanda": v["cantidad"] # type: ignore
         })
 
     df = pd.DataFrame(data)

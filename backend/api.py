@@ -27,14 +27,21 @@ def listar_productos():
 def crear_producto():
     try:
         data = request.json
-        print(data)
 
-        nombre = data.get('nombre')
-        precio = data.get('precio')
+        nombre          = data.get('nombre')
+        precio          = data.get('precio')
+        promedio_ventas = data.get('promedio_ventas')  # estimado por el usuario
 
-        repo.crear_producto(nombre, precio)
+        if not nombre or precio is None:
+            return jsonify({"error": "Nombre y precio son requeridos"}), 400
 
-        return jsonify({"mensaje": "Producto creado"}), 201
+        nuevo_id = repo.crear_producto(nombre, precio)
+
+        # Si el usuario ingresó un promedio, generamos historial simulado
+        if promedio_ventas and int(promedio_ventas) > 0 and nuevo_id:
+            repo.simular_ventas_historicas(nuevo_id, int(promedio_ventas), dias=90)
+
+        return jsonify({"mensaje": "Producto creado", "id_producto": nuevo_id}), 201
 
     except Exception as e:
         print("ERROR:", e)
@@ -88,8 +95,9 @@ def ventas_por_producto():
 @app.route('/prediccion/<int:producto_id>')
 def obtener_prediccion(producto_id):
     try:
+        dias = request.args.get('dias', default=7, type=int)
         df = cargar_datos(producto_id)
-        resultado = predecir_demanda(df)
+        resultado = predecir_demanda(df, dias=dias)
         return jsonify(resultado)
     except Exception as e:
         return jsonify({"error": str(e)}), 500

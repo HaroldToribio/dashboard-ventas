@@ -24,6 +24,22 @@ class VentasRepository:
         cursor.callproc('CrearProducto', (nombre, precio))
 
         conn.commit()
+
+        # Obtener el id_producto recién insertado
+        cursor.execute("SELECT LAST_INSERT_ID() AS id")
+        row = cursor.fetchone()
+        nuevo_id = row[0] if row else None # type: ignore
+
+        conn.close()
+        return nuevo_id
+
+    def simular_ventas_historicas(self, id_producto, promedio_diario, dias=90):
+        conn = DatabaseConnection().get_connection()
+        cursor = conn.cursor()
+
+        cursor.callproc('SimularVentasHistoricas', (id_producto, promedio_diario, dias))
+
+        conn.commit()
         conn.close()
 
     def eliminar_producto(self, id):

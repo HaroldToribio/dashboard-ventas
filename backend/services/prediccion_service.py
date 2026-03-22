@@ -1,5 +1,4 @@
-from backend.services.modelo_ml import entrenar_modelo, predecir_demanda as predecir_modelo
+from backend.services.modelo_ml import analizar_y_predecir
 
-def predecir_demanda(df):
-    modelo = entrenar_modelo(df)
-    return predecir_modelo(modelo)
+def predecir_demanda(df, dias: int = 7) -> dict:
+    return analizar_y_predecir(df, dias=dias)
