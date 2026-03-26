@@ -1,25 +1,43 @@
 # 📊 Sistema de Control de Inventario Inteligente
 
-Aplicación fullstack de gestión y predicción de inventario con Machine Learning.  
-Incluye dashboard interactivo, modelos de regresión para predecir demanda, gestión de productos y reportes gráficos — todo conectado a una base de datos MySQL mediante una API REST en Flask.
+Aplicación fullstack de gestión y predicción de inventario con Machine Learning y recomendaciones personalizadas.  
+Combina una base de datos MySQL, una API REST en Flask, modelos de regresión con scikit-learn y un dashboard interactivo que muestra estadísticas, predicciones de demanda y recomendaciones de productos al estilo Amazon.
 
 ---
 
 ## 🎬 Demo
 
-https://github.com/user-attachments/assets/c93959e3-8cbb-47cb-b467-ffbeda71018d
+https://github.com/user-attachments/assets/f84a6784-dbf3-48f1-aaac-4c14ad57658a
 
 ---
 
 ## 🚀 Funcionalidades
 
-- 🤖 **Predicción de demanda con ML** — compara 4 modelos de regresión automáticamente y selecciona el mejor
-- 📊 **Comparación de modelos** — tabla con métricas MAE y R² para LinearRegression, DecisionTree, RandomForest y GradientBoosting
-- 📈 **Dashboard interactivo** — KPIs en tiempo real: ventas totales, promedio, producto top
-- 📦 **Gestión de productos** — crear, listar y eliminar productos
-- 🧪 **Simulación de historial** — al agregar un producto, genera 90 días de ventas simuladas automáticamente para que el modelo ML pueda predecir desde el primer momento
-- 📉 **Reportes gráficos** — ventas por producto en gráficas de barras y torta (Chart.js)
-- 🔒 **Seguridad SQL** — todas las operaciones usan stored procedures, sin queries concatenadas
+### 🤖 Machine Learning
+- Entrena y compara automáticamente 4 modelos de regresión: **LinearRegression, DecisionTree, RandomForest y GradientBoosting**
+- Selecciona el mejor modelo por MAE y R² en cada consulta
+- Predice demanda futura para 7, 14 o 30 días
+- Encoders aplicados al feature engineering: **LabelEncoder, OneHotEncoder, OrdinalEncoder**
+
+### 🛍️ Recomendaciones personalizadas
+- **Filtrado colaborativo** basado en similitud coseno (igual que Amazon, Shein, Temu)
+- Recomienda productos según el historial de clientes con patrones de compra similares
+- Muestra score de afinidad y razón de cada recomendación
+
+### 📈 Reportes avanzados
+- Ingresos totales por producto (barras horizontales)
+- Participación en unidades vendidas (dona)
+- Tendencia mensual de ventas (línea + barras)
+- **Pares de productos comprados juntos** con frecuencia — la base visible del motor de recomendaciones
+
+### 📦 Gestión de inventario
+- Crear, listar y eliminar productos
+- Al agregar un producto, genera **90 días de historial simulado** automáticamente para activar las predicciones ML desde el primer momento
+- Gestión de clientes con compras iniciales simuladas para el cold-start del filtrado colaborativo
+
+### 🔒 Seguridad
+- Todas las operaciones de base de datos usan **stored procedures** — sin queries concatenadas, sin riesgo de inyección SQL
+- Credenciales manejadas con **variables de entorno**, nunca en el código fuente
 
 ---
 
@@ -31,7 +49,8 @@ https://github.com/user-attachments/assets/c93959e3-8cbb-47cb-b467-ffbeda71018d
 | Base de datos | MySQL 8 + Stored Procedures |
 | Machine Learning | scikit-learn (LinearRegression, RandomForest, GradientBoosting, DecisionTree) |
 | Encoders | LabelEncoder, OneHotEncoder, OrdinalEncoder |
-| Frontend | HTML5, CSS3, JavaScript (Vanilla) |
+| Recomendaciones | Filtrado colaborativo con similitud coseno (sklearn.metrics.pairwise) |
+| Frontend | HTML5, CSS3, JavaScript Vanilla |
 | Gráficas | Chart.js |
 
 ---
@@ -42,24 +61,26 @@ https://github.com/user-attachments/assets/c93959e3-8cbb-47cb-b467-ffbeda71018d
 dashboard-ventas/
 │
 ├── backend/
-│   ├── api.py                        ← Endpoints Flask
-│   ├── data_loader.py                ← Carga historial de MySQL a DataFrame
-│   ├── encoders.py                   ← Encoders de clasificación
+│   ├── api.py                          ← Endpoints Flask
+│   ├── data_loader.py                  ← Carga historial MySQL → DataFrame
+│   ├── encoders.py                     ← LabelEncoder, OneHot, Ordinal
 │   ├── database/
-│   │   └── connection.py             ← Conexión MySQL (variables de entorno)
+│   │   └── connection.py               ← Conexión MySQL (variables de entorno)
 │   ├── repositories/
-│   │   └── ventas_repository.py      ← Llamadas a stored procedures
+│   │   ├── ventas_repository.py        ← Stored procedures de ventas y productos
+│   │   └── clientes_repository.py      ← Stored procedures de clientes
 │   └── services/
-│       ├── modelo_ml.py              ← Entrenamiento y comparación de modelos
-│       └── prediccion_service.py
+│       ├── modelo_ml.py                ← Entrenamiento y comparación de modelos
+│       ├── prediccion_service.py       ← Orquesta predicción ML
+│       └── recomendacion_service.py    ← Filtrado colaborativo (similitud coseno)
 │
 ├── frontend/
-│   ├── index.html
+│   ├── index.html                      ← Dashboard, Productos, Predicción, Recomendaciones, Reportes
 │   ├── style.css
 │   └── dashboard.js
 │
-├── DB_Control_Inventario.sql         ← Schema + stored procedures + datos de prueba
-├── .env.example                      ← Plantilla de variables de entorno
+├── DB_Control_Inventario.sql           ← Schema + stored procedures + datos de prueba
+├── .env.example                        ← Plantilla de variables de entorno
 ├── .gitignore
 └── README.md
 ```
@@ -105,8 +126,6 @@ Esto crea la base de datos, las tablas, todos los stored procedures y los datos 
 
 ### 5. Configurar variables de entorno
 
-Copia `.env.example` a `.env` y llena tus credenciales:
-
 ```bash
 # Windows
 set DB_HOST=localhost
@@ -146,15 +165,19 @@ Luego visita: `http://localhost:8080`
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | `GET` | `/productos` | Lista todos los productos |
-| `POST` | `/productos` | Crea producto y genera historial simulado |
+| `POST` | `/productos` | Crea producto + genera 90 días de historial simulado |
 | `DELETE` | `/productos/<id>` | Elimina producto y sus ventas |
 | `GET` | `/ventas` | Todas las ventas con detalle |
-| `GET` | `/ventas/<id>` | Ventas de un producto específico |
 | `GET` | `/ventas-por-producto` | Resumen agrupado por producto |
-| `GET` | `/prediccion/<id>?dias=7` | Predicción ML + comparación de modelos |
+| `GET` | `/prediccion/<id>?dias=7` | Predicción ML + comparación de 4 modelos |
+| `GET` | `/clientes` | Lista todos los clientes |
+| `POST` | `/clientes` | Crea cliente + simula compras iniciales |
+| `GET` | `/recomendaciones/<id>?top=3` | Recomendaciones por filtrado colaborativo |
+| `GET` | `/reportes/ventas-por-mes` | Tendencia mensual de ventas |
+| `GET` | `/reportes/pares-productos` | Productos comprados juntos con más frecuencia |
 | `GET` | `/dashboard?producto=1&dias=7` | KPIs generales |
 
-### Ejemplo de respuesta — `/prediccion/<id>`
+### Ejemplo — `/prediccion/<id>`
 
 ```json
 {
@@ -177,20 +200,39 @@ Luego visita: `http://localhost:8080`
 }
 ```
 
+### Ejemplo — `/recomendaciones/<id>`
+
+```json
+{
+  "id_cliente": 3,
+  "total_clientes_analizados": 8,
+  "historial_compras": [
+    { "id_producto": 1, "nombre": "Laptop", "cantidad": 5 }
+  ],
+  "recomendaciones": [
+    {
+      "id_producto": 2,
+      "nombre": "Mouse",
+      "precio": 25.50,
+      "score": 0.87,
+      "razon": "4 cliente(s) con perfil similar también lo compraron"
+    }
+  ]
+}
+```
+
 ---
 
 ## 🧠 Modelos de Machine Learning
 
-El sistema entrena y compara automáticamente 4 modelos con cada consulta de predicción:
-
 | Modelo | Descripción |
 |--------|-------------|
-| `LinearRegression` | Regresión lineal clásica — base de comparación |
-| `DecisionTreeRegressor` | Árbol de decisión — captura relaciones no lineales |
+| `LinearRegression` | Regresión lineal — base de comparación |
+| `DecisionTreeRegressor` | Árbol de decisión — relaciones no lineales simples |
 | `RandomForestRegressor` | Ensemble de 100 árboles — robusto ante overfitting |
 | `GradientBoostingRegressor` | Boosting secuencial — alta precisión en datos tabulares |
 
-Las features usadas son extraídas de la fecha: `dia`, `mes`, `dia_semana`, `trimestre`.  
+Features extraídas de la fecha: `dia`, `mes`, `dia_semana`, `trimestre`.  
 El modelo con menor MAE se selecciona automáticamente.
 
 ---
@@ -198,4 +240,3 @@ El modelo con menor MAE se selecciona automáticamente.
 ## 👨‍💻 Autor
 
 **Harold Toribio**  
-Proyecto Final — Segundo Parcial, Programación con Inteligencia Artificial
